@@ -16,15 +16,16 @@ ENV NODE_ENV=production
 
 COPY package.json package-lock.json* ./
 COPY apps/server/package.json apps/server/package.json
+COPY apps/server/prisma apps/server/prisma
+COPY apps/server/scripts apps/server/scripts
 RUN npm install --omit=dev --workspace @studyflow/server
+RUN npm run db:generate --workspace @studyflow/server
 
 COPY --from=build /app/apps/server/dist apps/server/dist
 COPY --from=build /app/apps/server/config apps/server/config
-COPY --from=build /app/apps/server/prisma apps/server/prisma
 
 WORKDIR /app/apps/server
 
 EXPOSE 4000
 
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/src/index.js"]
-
+CMD ["sh", "-c", "npm run db:deploy && node dist/src/index.js"]

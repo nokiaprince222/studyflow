@@ -16,6 +16,7 @@ StudyFlow - учебный full-stack проект для управления �
 ```powershell
 npm install
 npm run db:migrate --workspace @studyflow/server
+npm run db:seed --workspace @studyflow/server
 npm run dev:server
 ```
 
@@ -32,8 +33,10 @@ npm run dev:client
 ```powershell
 npm run build
 npm run test
-npm run db:seed --workspace @studyflow/server
+npm run db:migrate:prisma --workspace @studyflow/server
 ```
+
+Команда `db:migrate` применяет SQL-файлы из `prisma/migrations` через локальный SQLite setup-скрипт. Это сделано как устойчивый путь для Windows/Node 24, где `prisma migrate dev` может падать на пустой SQLite-БД с `Schema engine error`. Нативная команда Prisma оставлена как `db:migrate:prisma`.
 
 ## Проверка API
 
@@ -51,4 +54,3 @@ Invoke-RestMethod http://localhost:4000/metrics
 4. Добавить RabbitMQ и обработчик событий задач.
 5. Подготовить Grafana dashboard для успешных и ошибочных запросов в минуту.
 6. Добавить Kubernetes-манифесты с несколькими репликами.
-

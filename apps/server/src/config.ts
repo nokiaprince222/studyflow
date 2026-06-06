@@ -20,7 +20,11 @@ const configSchema = z.object({
 type RawConfig = z.infer<typeof configSchema>;
 
 function readConfigFile(): RawConfig {
-  const configPath = process.env.APP_CONFIG ?? path.resolve(dirname, '../config/default.json');
+  const configPath =
+    process.env.APP_CONFIG ??
+    [path.resolve(process.cwd(), 'config/default.json'), path.resolve(dirname, '../config/default.json')]
+      .find((candidate) => fs.existsSync(candidate)) ??
+    path.resolve(dirname, '../../config/default.json');
   const content = fs.readFileSync(configPath, 'utf-8');
   return configSchema.parse(JSON.parse(content));
 }
@@ -41,4 +45,3 @@ export const config = configSchema.parse({
     overdueScanMs: numberFromEnv(process.env.OVERDUE_SCAN_MS, fileConfig.jobs.overdueScanMs)
   }
 });
-

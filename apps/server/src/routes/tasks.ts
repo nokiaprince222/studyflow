@@ -11,7 +11,7 @@ import {
   type UpdateTaskInput
 } from '../schemas/task.js';
 
-function parseOrThrow<T>(schema: z.ZodType<T>, value: unknown) {
+function parseOrThrow<TSchema extends z.ZodTypeAny>(schema: TSchema, value: unknown): z.infer<TSchema> {
   const result = schema.safeParse(value);
 
   if (!result.success) {
@@ -147,4 +147,3 @@ export async function taskRoutes(app: FastifyInstance) {
     return { ok: true };
   });
 }
-
