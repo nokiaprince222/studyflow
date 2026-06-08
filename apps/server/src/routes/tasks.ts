@@ -1,5 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import { deleteCacheKey, getJson, setJson } from '../cache.js';
+import { config } from '../config.js';
 import { notFound, validationFailed } from '../errors.js';
 import { prisma } from '../prisma.js';
 import {
@@ -10,6 +12,9 @@ import {
   type CreateTaskInput,
   type UpdateTaskInput
 } from '../schemas/task.js';
+import { getTaskStats, type TaskStats } from '../services/taskStats.js';
+
+const TASK_STATS_CACHE_KEY = 'tasks:stats:v1';
 
 function parseOrThrow<TSchema extends z.ZodTypeAny>(schema: TSchema, value: unknown): z.infer<TSchema> {
   const result = schema.safeParse(value);
@@ -42,6 +47,37 @@ function toUpdateData(input: UpdateTaskInput, previousStatus: string) {
   };
 }
 
+async function readStats(log: FastifyInstance['log']) {
+  const cached = await getJson<TaskStats>(TASK_STATS_CACHE_KEY, log);
+
+  if (cached.hit && cached.value) {
+    return {
+      ...cached.value,
+      cache: {
+        backend: cached.backend,
+        hit: true,
+        ttlSeconds: config.cache.statsTtlSeconds
+      }
+    };
+  }
+
+  const stats = await getTaskStats();
+  await setJson(TASK_STATS_CACHE_KEY, stats, config.cache.statsTtlSeconds, log);
+
+  return {
+    ...stats,
+    cache: {
+      backend: cached.backend,
+      hit: false,
+      ttlSeconds: config.cache.statsTtlSeconds
+    }
+  };
+}
+
+async function invalidateStats(log: FastifyInstance['log']) {
+  await deleteCacheKey(TASK_STATS_CACHE_KEY, log);
+}
+
 export async function taskRoutes(app: FastifyInstance) {
   app.get('/', async (request) => {
     const query = parseOrThrow(listTaskQuerySchema, request.query);
@@ -72,6 +108,20 @@ export async function taskRoutes(app: FastifyInstance) {
     });
   });
 
+  app.get('/stats', async (request) => {
+    const stats = await readStats(request.log);
+
+    request.log.info(
+      {
+        operation: 'tasks.stats',
+        cache: stats.cache
+      },
+      'task stats loaded'
+    );
+
+    return stats;
+  });
+
   app.get('/:id', async (request) => {
     const params = parseOrThrow(taskParamsSchema, request.params);
     const task = await prisma.task.findUnique({
@@ -95,6 +145,7 @@ export async function taskRoutes(app: FastifyInstance) {
     });
 
     request.log.info({ operation: 'tasks.create', taskId: task.id }, 'task created');
+    await invalidateStats(request.log);
 
     reply.code(201);
     return task;
@@ -121,6 +172,7 @@ export async function taskRoutes(app: FastifyInstance) {
     });
 
     request.log.info({ operation: 'tasks.update', taskId: task.id }, 'task updated');
+    await invalidateStats(request.log);
     return task;
   });
 
@@ -143,6 +195,7 @@ export async function taskRoutes(app: FastifyInstance) {
     });
 
     request.log.info({ operation: 'tasks.delete', taskId: params.id }, 'task deleted');
+    await invalidateStats(request.log);
 
     return { ok: true };
   });

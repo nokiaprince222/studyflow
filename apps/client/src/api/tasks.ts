@@ -29,6 +29,20 @@ export interface TaskFilters {
   q?: string;
 }
 
+export interface TaskStats {
+  total: number;
+  todo: number;
+  inProgress: number;
+  done: number;
+  overdue: number;
+  generatedAt: string;
+  cache: {
+    backend: 'disabled' | 'redis' | 'unavailable';
+    hit: boolean;
+    ttlSeconds: number;
+  };
+}
+
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api';
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -64,6 +78,10 @@ export function getTasks(filters: TaskFilters = {}) {
   return request<Task[]>(`/tasks${query ? `?${query}` : ''}`);
 }
 
+export function getTaskStats() {
+  return request<TaskStats>('/tasks/stats');
+}
+
 export function createTask(payload: CreateTaskPayload) {
   return request<Task>('/tasks', {
     method: 'POST',
@@ -83,4 +101,3 @@ export function deleteTask(id: string) {
     method: 'DELETE'
   });
 }
-

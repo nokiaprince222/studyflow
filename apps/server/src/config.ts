@@ -12,6 +12,10 @@ const configSchema = z.object({
   databaseUrl: z.string().min(1),
   corsOrigin: z.string().min(1),
   logLevel: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']),
+  cache: z.object({
+    redisUrl: z.string(),
+    statsTtlSeconds: z.number().int().positive()
+  }),
   jobs: z.object({
     overdueScanMs: z.number().int().nonnegative()
   })
@@ -41,6 +45,10 @@ export const config = configSchema.parse({
   databaseUrl: process.env.DATABASE_URL ?? fileConfig.databaseUrl,
   corsOrigin: process.env.CORS_ORIGIN ?? fileConfig.corsOrigin,
   logLevel: process.env.LOG_LEVEL ?? fileConfig.logLevel,
+  cache: {
+    redisUrl: process.env.REDIS_URL ?? fileConfig.cache.redisUrl,
+    statsTtlSeconds: numberFromEnv(process.env.CACHE_STATS_TTL_SECONDS, fileConfig.cache.statsTtlSeconds)
+  },
   jobs: {
     overdueScanMs: numberFromEnv(process.env.OVERDUE_SCAN_MS, fileConfig.jobs.overdueScanMs)
   }

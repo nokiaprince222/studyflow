@@ -47,6 +47,7 @@ export function TaskList({ tasks, isLoading = false }: TaskListProps) {
     mutationFn: ({ id, status }: { id: string; status: TaskStatus }) => updateTask(id, { status }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      void queryClient.invalidateQueries({ queryKey: ['task-stats'] });
     }
   });
 
@@ -54,6 +55,7 @@ export function TaskList({ tasks, isLoading = false }: TaskListProps) {
     mutationFn: deleteTask,
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      void queryClient.invalidateQueries({ queryKey: ['task-stats'] });
     }
   });
 
@@ -127,4 +129,3 @@ export function TaskList({ tasks, isLoading = false }: TaskListProps) {
     </div>
   );
 }
-

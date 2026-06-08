@@ -8,10 +8,18 @@ services:
       PORT: 4000
       DATABASE_URL: file:/data/studyflow.db
       CORS_ORIGIN: "*"
+      REDIS_URL: redis://redis:6379
     ports:
       - "4000:4000"
     volumes:
       - server-data:/data
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
 
   client:
     build:
@@ -26,4 +34,3 @@ services:
 
 volumes:
   server-data:
-

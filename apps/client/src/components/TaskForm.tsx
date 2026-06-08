@@ -24,6 +24,7 @@ export function TaskForm() {
       setPriority('medium');
       setDueDate('');
       void queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      void queryClient.invalidateQueries({ queryKey: ['task-stats'] });
     }
   });
 
@@ -93,4 +94,3 @@ export function TaskForm() {
     </form>
   );
 }
-

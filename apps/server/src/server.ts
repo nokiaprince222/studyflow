@@ -1,5 +1,6 @@
 import cors from '@fastify/cors';
 import Fastify from 'fastify';
+import { closeCache } from './cache.js';
 import { config } from './config.js';
 import { errorHandler } from './errors.js';
 import { metricsPlugin } from './plugins/metrics.js';
@@ -14,6 +15,9 @@ export async function buildServer() {
   });
 
   app.setErrorHandler(errorHandler);
+  app.addHook('onClose', async () => {
+    await closeCache();
+  });
 
   await app.register(cors, {
     origin: config.corsOrigin === '*' ? true : config.corsOrigin
@@ -32,4 +36,3 @@ export async function buildServer() {
 
   return app;
 }
-

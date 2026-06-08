@@ -4,8 +4,11 @@
   "databaseUrl": "file:./dev.db",
   "corsOrigin": "*",
   "logLevel": "info",
+  "cache": {
+    "redisUrl": "",
+    "statsTtlSeconds": 30
+  },
   "jobs": {
     "overdueScanMs": 60000
   }
 }
-

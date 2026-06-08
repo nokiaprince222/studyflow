@@ -1,20 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
 import { ArrowRight, CheckCircle2, Clock4, ListTodo } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { getTasks } from '../api/tasks';
+import { getTaskStats } from '../api/tasks';
 
 export function DashboardPage() {
-  const { data: tasks = [], isLoading } = useQuery({
-    queryKey: ['tasks', 'dashboard'],
-    queryFn: () => getTasks()
+  const { data: stats, isLoading } = useQuery({
+    queryKey: ['task-stats'],
+    queryFn: getTaskStats
   });
 
-  const total = tasks.length;
-  const inProgress = tasks.filter((task) => task.status === 'in_progress').length;
-  const done = tasks.filter((task) => task.status === 'done').length;
-  const overdue = tasks.filter(
-    (task) => task.dueDate && task.status !== 'done' && new Date(task.dueDate) < new Date()
-  ).length;
+  const total = stats?.total ?? 0;
+  const inProgress = stats?.inProgress ?? 0;
+  const done = stats?.done ?? 0;
+  const overdue = stats?.overdue ?? 0;
 
   return (
     <section className="page-section">
@@ -65,4 +63,3 @@ export function DashboardPage() {
     </section>
   );
 }
-

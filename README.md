@@ -43,8 +43,13 @@ npm run db:migrate:prisma --workspace @studyflow/server
 ```powershell
 Invoke-RestMethod http://localhost:4000/health
 Invoke-RestMethod http://localhost:4000/api/tasks
+Invoke-RestMethod http://localhost:4000/api/tasks/stats
 Invoke-RestMethod http://localhost:4000/metrics
 ```
+
+## Redis cache
+
+`/api/tasks/stats` is cached through Redis when `REDIS_URL` is set. In `docker-compose.yml`, Redis is started as a separate `redis:7-alpine` service and the server receives `REDIS_URL=redis://redis:6379`.
 
 ## План следующих инкрементов
 
