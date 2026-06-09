@@ -1,6 +1,7 @@
-import { BarChart3, ClipboardList, Info, ListChecks } from 'lucide-react';
+import { BarChart3, ClipboardList, Info, ListChecks, LogIn, LogOut } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
 import { NavLink } from 'react-router-dom';
+import { useAuth } from '../auth/AuthProvider';
 
 const navigation = [
   { to: '/', label: 'Обзор', icon: BarChart3 },
@@ -9,6 +10,8 @@ const navigation = [
 ];
 
 export function Shell({ children }: PropsWithChildren) {
+  const auth = useAuth();
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -35,12 +38,25 @@ export function Shell({ children }: PropsWithChildren) {
 
         <div className="sidebar-footer">
           <ListChecks size={18} aria-hidden="true" />
-          <span>REST + Prisma + PWA</span>
+          <span>{auth.enabled ? auth.userName ?? 'OIDC enabled' : 'REST + Prisma + PWA'}</span>
         </div>
+
+        {auth.enabled ? (
+          <button
+            className="auth-button"
+            type="button"
+            onClick={() => {
+              void (auth.isAuthenticated ? auth.logout() : auth.login());
+            }}
+            disabled={auth.isLoading}
+          >
+            {auth.isAuthenticated ? <LogOut size={18} aria-hidden="true" /> : <LogIn size={18} aria-hidden="true" />}
+            <span>{auth.isAuthenticated ? 'Logout' : 'Login'}</span>
+          </button>
+        ) : null}
       </aside>
 
       <main className="main-content">{children}</main>
     </div>
   );
 }
-

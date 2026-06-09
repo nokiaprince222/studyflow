@@ -38,6 +38,14 @@ export function validationFailed(details: unknown) {
   });
 }
 
+export function unauthorized(message = 'Требуется авторизация') {
+  return new ApiError({
+    statusCode: 401,
+    code: 'UNAUTHORIZED',
+    message
+  });
+}
+
 export function errorHandler(error: FastifyError | ApiError, request: FastifyRequest, reply: FastifyReply) {
   const isApiError = error instanceof ApiError;
   const statusCode = isApiError ? error.statusCode : error.statusCode ?? 500;
@@ -64,4 +72,3 @@ export function errorHandler(error: FastifyError | ApiError, request: FastifyReq
     }
   });
 }
-

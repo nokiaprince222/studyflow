@@ -16,6 +16,11 @@ const configSchema = z.object({
     redisUrl: z.string(),
     statsTtlSeconds: z.number().int().positive()
   }),
+  auth: z.object({
+    oidcIssuer: z.string(),
+    oidcAudience: z.string(),
+    oidcJwksUri: z.string()
+  }),
   jobs: z.object({
     overdueScanMs: z.number().int().nonnegative()
   })
@@ -48,6 +53,11 @@ export const config = configSchema.parse({
   cache: {
     redisUrl: process.env.REDIS_URL ?? fileConfig.cache.redisUrl,
     statsTtlSeconds: numberFromEnv(process.env.CACHE_STATS_TTL_SECONDS, fileConfig.cache.statsTtlSeconds)
+  },
+  auth: {
+    oidcIssuer: process.env.OIDC_ISSUER ?? fileConfig.auth.oidcIssuer,
+    oidcAudience: process.env.OIDC_AUDIENCE ?? fileConfig.auth.oidcAudience,
+    oidcJwksUri: process.env.OIDC_JWKS_URI ?? fileConfig.auth.oidcJwksUri
   },
   jobs: {
     overdueScanMs: numberFromEnv(process.env.OVERDUE_SCAN_MS, fileConfig.jobs.overdueScanMs)

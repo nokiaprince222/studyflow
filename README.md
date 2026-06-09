@@ -51,6 +51,17 @@ Invoke-RestMethod http://localhost:4000/metrics
 
 `/api/tasks/stats` is cached through Redis when `REDIS_URL` is set. In `docker-compose.yml`, Redis is started as a separate `redis:7-alpine` service and the server receives `REDIS_URL=redis://redis:6379`.
 
+## OpenID Connect
+
+The Docker Compose profile starts Keycloak at `http://localhost:8080` and imports the `studyflow` realm from `infra/keycloak/studyflow-realm.json`.
+
+- Admin console: `admin` / `admin`
+- Demo user: `student` / `student`
+- SPA client: `studyflow-client`
+- Client authority: `http://localhost:8080/realms/studyflow`
+
+When `OIDC_ISSUER` is set on the server, `/api/tasks/*` requires a Bearer access token. Local npm development keeps auth disabled by default because `OIDC_ISSUER` is empty in config.
+
 ## План следующих инкрементов
 
 1. Добавить OAuth/OpenID Connect через Keycloak.

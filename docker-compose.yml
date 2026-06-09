@@ -9,11 +9,15 @@ services:
       DATABASE_URL: file:/data/studyflow.db
       CORS_ORIGIN: "*"
       REDIS_URL: redis://redis:6379
+      OIDC_ISSUER: http://localhost:8080/realms/studyflow
+      OIDC_AUDIENCE: studyflow-client
+      OIDC_JWKS_URI: http://keycloak:8080/realms/studyflow/protocol/openid-connect/certs
     ports:
       - "4000:4000"
     volumes:
       - server-data:/data
     depends_on:
+      - keycloak
       - redis
 
   redis:
@@ -21,15 +25,31 @@ services:
     ports:
       - "6379:6379"
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    command: start-dev --import-realm
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./infra/keycloak:/opt/keycloak/data/import
+
   client:
     build:
       context: .
       dockerfile: apps/client/Dockerfile
       args:
         VITE_API_URL: http://localhost:4000/api
+        VITE_OIDC_AUTHORITY: http://localhost:8080/realms/studyflow
+        VITE_OIDC_CLIENT_ID: studyflow-client
+        VITE_OIDC_REDIRECT_URI: http://localhost:5173
+        VITE_OIDC_POST_LOGOUT_REDIRECT_URI: http://localhost:5173
     ports:
       - "5173:80"
     depends_on:
+      - keycloak
       - server
 
 volumes:

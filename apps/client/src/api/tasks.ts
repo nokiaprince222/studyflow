@@ -46,10 +46,12 @@ export interface TaskStats {
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api';
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const token = await getAccessToken();
   const response = await fetch(`${API_URL}${path}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options.headers
     }
   });
@@ -101,3 +103,4 @@ export function deleteTask(id: string) {
     method: 'DELETE'
   });
 }
+import { getAccessToken } from '../auth/oidc';

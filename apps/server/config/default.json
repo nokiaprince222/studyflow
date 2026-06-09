@@ -8,6 +8,11 @@
     "redisUrl": "",
     "statsTtlSeconds": 30
   },
+  "auth": {
+    "oidcIssuer": "",
+    "oidcAudience": "studyflow-client",
+    "oidcJwksUri": ""
+  },
   "jobs": {
     "overdueScanMs": 60000
   }

@@ -4,6 +4,7 @@ import { deleteCacheKey, getJson, setJson } from '../cache.js';
 import { config } from '../config.js';
 import { notFound, validationFailed } from '../errors.js';
 import { prisma } from '../prisma.js';
+import { requireAuth } from '../auth.js';
 import {
   createTaskSchema,
   listTaskQuerySchema,
@@ -79,6 +80,8 @@ async function invalidateStats(log: FastifyInstance['log']) {
 }
 
 export async function taskRoutes(app: FastifyInstance) {
+  app.addHook('preHandler', requireAuth);
+
   app.get('/', async (request) => {
     const query = parseOrThrow(listTaskQuerySchema, request.query);
 
