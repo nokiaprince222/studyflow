@@ -51,6 +51,17 @@ Invoke-RestMethod http://localhost:4000/metrics
 
 `/api/tasks/stats` is cached through Redis when `REDIS_URL` is set. In `docker-compose.yml`, Redis is started as a separate `redis:7-alpine` service and the server receives `REDIS_URL=redis://redis:6379`.
 
+## Prometheus and Grafana
+
+`docker-compose.yml` starts Prometheus at `http://localhost:9090` and Grafana at `http://localhost:3000`.
+
+- Grafana login: `admin` / `admin`
+- Prometheus scrapes `server:4000/metrics`
+- Dashboard: `StudyFlow / StudyFlow HTTP Metrics`
+- Required charts are provisioned automatically:
+  - successful requests per minute
+  - failed requests per minute
+
 ## OpenID Connect
 
 The Docker Compose profile starts Keycloak at `http://localhost:8080` and imports the `studyflow` realm from `infra/keycloak/studyflow-realm.json`.
