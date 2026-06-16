@@ -6,9 +6,6 @@ on:
       - main
   pull_request:
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   build-test:
     runs-on: ubuntu-latest
@@ -16,10 +13,10 @@ jobs:
       DATABASE_URL: postgresql://studyflow:studyflow@localhost:5432/studyflow?schema=public
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
