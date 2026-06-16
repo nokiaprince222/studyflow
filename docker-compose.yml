@@ -6,24 +6,65 @@ services:
     environment:
       HOST: 0.0.0.0
       PORT: 4000
-      DATABASE_URL: file:/data/studyflow.db
+      DATABASE_URL: postgresql://studyflow:studyflow@postgres:5432/studyflow?schema=public
       CORS_ORIGIN: "*"
       REDIS_URL: redis://redis:6379
+      RABBITMQ_URL: amqp://studyflow:studyflow@rabbitmq:5672
+      TASK_EVENTS_QUEUE: studyflow.task-events
       OIDC_ISSUER: http://localhost:8080/realms/studyflow
       OIDC_AUDIENCE: studyflow-client
       OIDC_JWKS_URI: http://keycloak:8080/realms/studyflow/protocol/openid-connect/certs
     ports:
       - "4000:4000"
-    volumes:
-      - server-data:/data
     depends_on:
-      - keycloak
-      - redis
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: studyflow
+      POSTGRES_USER: studyflow
+      POSTGRES_PASSWORD: studyflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U studyflow -d studyflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
 
   redis:
     image: redis:7-alpine
     ports:
       - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: studyflow
+      RABBITMQ_DEFAULT_PASS: studyflow
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
 
   prometheus:
     image: prom/prometheus:v2.55.1
@@ -80,5 +121,5 @@ services:
       - server
 
 volumes:
-  server-data:
+  postgres-data:
   grafana-data:

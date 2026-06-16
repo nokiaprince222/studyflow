@@ -5,6 +5,7 @@ import { config } from '../config.js';
 import { notFound, validationFailed } from '../errors.js';
 import { prisma } from '../prisma.js';
 import { requireAuth } from '../auth.js';
+import { createTaskEvent, publishTaskEvent } from '../queue.js';
 import {
   createTaskSchema,
   listTaskQuerySchema,
@@ -149,6 +150,14 @@ export async function taskRoutes(app: FastifyInstance) {
 
     request.log.info({ operation: 'tasks.create', taskId: task.id }, 'task created');
     await invalidateStats(request.log);
+    await publishTaskEvent(
+      createTaskEvent('task.created', task.id, {
+        title: task.title,
+        status: task.status,
+        priority: task.priority
+      }),
+      request.log
+    );
 
     reply.code(201);
     return task;
@@ -176,6 +185,14 @@ export async function taskRoutes(app: FastifyInstance) {
 
     request.log.info({ operation: 'tasks.update', taskId: task.id }, 'task updated');
     await invalidateStats(request.log);
+    await publishTaskEvent(
+      createTaskEvent('task.updated', task.id, {
+        previousStatus: existing.status,
+        status: task.status,
+        priority: task.priority
+      }),
+      request.log
+    );
     return task;
   });
 
@@ -199,6 +216,13 @@ export async function taskRoutes(app: FastifyInstance) {
 
     request.log.info({ operation: 'tasks.delete', taskId: params.id }, 'task deleted');
     await invalidateStats(request.log);
+    await publishTaskEvent(
+      createTaskEvent('task.deleted', params.id, {
+        previousStatus: existing.status,
+        title: existing.title
+      }),
+      request.log
+    );
 
     return { ok: true };
   });

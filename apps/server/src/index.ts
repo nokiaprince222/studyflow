@@ -1,15 +1,18 @@
 import { config } from './config.js';
 import { startOverdueTaskJob } from './jobs/overdueTaskJob.js';
 import { prisma } from './prisma.js';
+import { startTaskEventConsumer } from './queue.js';
 import { buildServer } from './server.js';
 
 async function main() {
   const app = await buildServer();
   const stopOverdueJob = startOverdueTaskJob(app);
+  const stopTaskEventConsumer = await startTaskEventConsumer(app.log);
 
   async function shutdown(signal: string) {
     app.log.info({ signal, operation: 'server.shutdown' }, 'server shutdown requested');
     stopOverdueJob();
+    await stopTaskEventConsumer();
     await app.close();
     await prisma.$disconnect();
   }
@@ -32,4 +35,3 @@ main().catch((error) => {
   console.error(error);
   process.exit(1);
 });
-

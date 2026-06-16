@@ -2,19 +2,51 @@
 
 StudyFlow - учебный full-stack проект для управления задачами, дедлайнами и статусами работ по курсам.
 
-## Что сделано в первом инкременте
+## Что реализовано
 
-- Клиент: React, TypeScript, Vite, React Router, Zustand, TanStack Query, базовая PWA-настройка.
-- Сервер: Fastify, TypeScript, REST API, Prisma ORM, SQLite, миграция БД.
-- API: полный CRUD для сущности `Task`.
-- Инфраструктурные элементы сервера: конфигурация из файла с переопределением через env, структурные логи, глобальная обработка ошибок, Prometheus-метрики, фоновая задача обработки просроченных задач.
-- Тесты: базовый компонентный тест клиента и unit-тест серверной схемы.
-- Подготовлены Dockerfile для клиента и сервера, а также `docker-compose.yml`.
+- Клиент: React, TypeScript, Vite, React Router, Zustand, TanStack Query, PWA и компонентные тесты Vitest.
+- Сервер: Fastify, TypeScript, REST API, Prisma ORM, PostgreSQL и полный CRUD для сущности `Task`.
+- Авторизация: OpenID Connect через Keycloak в Docker Compose.
+- Инфраструктура сервера: конфигурация из файла с переопределением через env, структурные логи, глобальная обработка ошибок, Prometheus-метрики и фоновая задача обработки просроченных задач.
+- Кэширование: Redis используется для часто запрашиваемой статистики `/api/tasks/stats`.
+- Очередь: RabbitMQ принимает события задач, consumer сохраняет обработанные события в таблицу `TaskEvent`.
+- Мониторинг: Prometheus собирает метрики, Grafana автоматически поднимает dashboard с успешными и ошибочными запросами в минуту.
+- DevOps: Dockerfile для клиента и сервера, Docker Compose, PowerShell-скрипты, GitHub Actions CI и Kubernetes-манифесты с несколькими репликами клиента/API.
 
-## Запуск локально
+## Docker Compose
 
 ```powershell
 npm install
+npm run docker:up
+```
+
+После запуска:
+
+- Клиент: `http://localhost:5173`
+- API health: `http://localhost:4000/health`
+- Keycloak: `http://localhost:8080`, admin `admin` / `admin`
+- Demo user: `student` / `student`
+- RabbitMQ Management: `http://localhost:15672`, `studyflow` / `studyflow`
+- Prometheus: `http://localhost:9090`
+- Grafana: `http://localhost:3000`, `admin` / `admin`
+
+Остановить стек:
+
+```powershell
+npm run docker:down
+```
+
+## Локальная разработка без контейнеров приложения
+
+Поднимите инфраструктуру:
+
+```powershell
+docker compose up -d postgres redis rabbitmq keycloak prometheus grafana
+```
+
+Затем примените миграции и запустите приложения:
+
+```powershell
 npm run db:migrate --workspace @studyflow/server
 npm run db:seed --workspace @studyflow/server
 npm run dev:server
@@ -26,58 +58,41 @@ npm run dev:server
 npm run dev:client
 ```
 
-Клиент по умолчанию откроется на `http://localhost:5173`, сервер - на `http://localhost:4000`.
-
-## Полезные команды
+## Проверки
 
 ```powershell
-npm run build
 npm run test
-npm run db:migrate:prisma --workspace @studyflow/server
-```
-
-Команда `db:migrate` применяет SQL-файлы из `prisma/migrations` через локальный SQLite setup-скрипт. Это сделано как устойчивый путь для Windows/Node 24, где `prisma migrate dev` может падать на пустой SQLite-БД с `Schema engine error`. Нативная команда Prisma оставлена как `db:migrate:prisma`.
-
-## Проверка API
-
-```powershell
+npm run build
 Invoke-RestMethod http://localhost:4000/health
-Invoke-RestMethod http://localhost:4000/api/tasks
-Invoke-RestMethod http://localhost:4000/api/tasks/stats
 Invoke-RestMethod http://localhost:4000/metrics
 ```
 
-## Redis cache
+Если OIDC включен через Docker Compose, запросы к `/api/tasks/*` требуют Bearer access token. Без токена сервер должен возвращать `401`.
 
-`/api/tasks/stats` is cached through Redis when `REDIS_URL` is set. In `docker-compose.yml`, Redis is started as a separate `redis:7-alpine` service and the server receives `REDIS_URL=redis://redis:6379`.
+## Kubernetes
 
-## Prometheus and Grafana
+Для локального Kubernetes-кластера сначала соберите образы:
 
-`docker-compose.yml` starts Prometheus at `http://localhost:9090` and Grafana at `http://localhost:3000`.
+```powershell
+.\scripts\build-images.ps1
+.\scripts\deploy-k8s.ps1 -Wait
+```
 
-- Grafana login: `admin` / `admin`
-- Prometheus scrapes `server:4000/metrics`
-- Dashboard: `StudyFlow / StudyFlow HTTP Metrics`
-- Required charts are provisioned automatically:
-  - successful requests per minute
-  - failed requests per minute
+Манифесты находятся в `infra/k8s`. По умолчанию поднимаются:
 
-## OpenID Connect
+- `studyflow-server` в 2 репликах
+- `studyflow-client` в 2 репликах
+- PostgreSQL, Redis и RabbitMQ
 
-The Docker Compose profile starts Keycloak at `http://localhost:8080` and imports the `studyflow` realm from `infra/keycloak/studyflow-realm.json`.
+Локальные NodePort-адреса:
 
-- Admin console: `admin` / `admin`
-- Demo user: `student` / `student`
-- SPA client: `studyflow-client`
-- Client authority: `http://localhost:8080/realms/studyflow`
+- Клиент: `http://localhost:30080`
+- API health: `http://localhost:30040/health`
 
-When `OIDC_ISSUER` is set on the server, `/api/tasks/*` requires a Bearer access token. Local npm development keeps auth disabled by default because `OIDC_ISSUER` is empty in config.
+## Полезные скрипты
 
-## План следующих инкрементов
-
-1. Добавить OAuth/OpenID Connect через Keycloak.
-2. Перейти с SQLite на Postgres для контейнерного и Kubernetes-сценария.
-3. Добавить Redis-кэш для часто запрашиваемой аналитики.
-4. Добавить RabbitMQ и обработчик событий задач.
-5. Подготовить Grafana dashboard для успешных и ошибочных запросов в минуту.
-6. Добавить Kubernetes-манифесты с несколькими репликами.
+```powershell
+.\scripts\build-images.ps1
+.\scripts\deploy-compose.ps1
+.\scripts\deploy-k8s.ps1 -Wait
+```

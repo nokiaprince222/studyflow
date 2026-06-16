@@ -1,7 +1,7 @@
 {
   "host": "0.0.0.0",
   "port": 4000,
-  "databaseUrl": "file:./dev.db",
+  "databaseUrl": "postgresql://studyflow:studyflow@localhost:5432/studyflow?schema=public",
   "corsOrigin": "*",
   "logLevel": "info",
   "cache": {
@@ -12,6 +12,10 @@
     "oidcIssuer": "",
     "oidcAudience": "studyflow-client",
     "oidcJwksUri": ""
+  },
+  "queue": {
+    "rabbitmqUrl": "",
+    "taskEventsQueue": "studyflow.task-events"
   },
   "jobs": {
     "overdueScanMs": 60000

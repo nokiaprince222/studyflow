@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -23,3 +23,14 @@ model Task {
   @@index([dueDate])
 }
 
+model TaskEvent {
+  id          String    @id @default(cuid())
+  taskId      String
+  type        String
+  payload     Json?
+  occurredAt  DateTime
+  processedAt DateTime  @default(now())
+
+  @@index([taskId])
+  @@index([type])
+}

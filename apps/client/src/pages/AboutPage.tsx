@@ -1,10 +1,11 @@
-import { Database, Gauge, Route, Server } from 'lucide-react';
+import { Database, Gauge, KeyRound, Route, Server } from 'lucide-react';
 
 const stack = [
   { icon: Route, label: 'Роутинг', value: 'React Router' },
   { icon: Server, label: 'API', value: 'Fastify REST' },
-  { icon: Database, label: 'Хранилище', value: 'SQLite + Prisma' },
-  { icon: Gauge, label: 'Метрики', value: 'Prometheus' }
+  { icon: Database, label: 'Хранилище', value: 'Postgres + Prisma' },
+  { icon: Gauge, label: 'Метрики', value: 'Prometheus + Grafana' },
+  { icon: KeyRound, label: 'Auth', value: 'Keycloak OIDC' }
 ];
 
 export function AboutPage() {
@@ -33,15 +34,14 @@ export function AboutPage() {
 
       <div className="work-band">
         <div>
-          <p className="eyebrow">Дальше</p>
-          <h2>OAuth, Redis, RabbitMQ и Kubernetes</h2>
+          <p className="eyebrow">Инфраструктура</p>
+          <h2>Redis, RabbitMQ, Docker и Kubernetes</h2>
         </div>
         <p>
-          Текущий инкремент закрывает базовый контур клиента и сервера. Следующие шаги вынесены в README, чтобы проект
-          можно было наращивать по требованиям курса.
+          Проект запускается через Docker Compose, имеет CI-сборку и подготовленные Kubernetes-манифесты с несколькими
+          репликами клиента и API.
         </p>
       </div>
     </section>
   );
 }
-

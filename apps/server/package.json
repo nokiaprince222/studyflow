@@ -8,15 +8,16 @@
     "build": "prisma generate && tsc -p tsconfig.json",
     "start": "node dist/src/index.js",
     "test": "vitest run",
-    "db:migrate": "node scripts/setup-sqlite.mjs",
+    "db:migrate": "prisma migrate dev",
     "db:migrate:prisma": "prisma migrate dev",
-    "db:deploy": "node scripts/setup-sqlite.mjs",
+    "db:deploy": "prisma migrate deploy",
     "db:generate": "prisma generate",
     "db:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@fastify/cors": "^10.0.1",
     "@prisma/client": "^6.0.1",
+    "amqplib": "^2.0.1",
     "dotenv": "^16.4.7",
     "fastify": "^5.1.0",
     "fastify-plugin": "^5.0.1",
@@ -27,6 +28,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@types/amqplib": "^0.10.8",
     "@types/node": "^22.10.1",
     "tsx": "^4.19.2",
     "typescript": "^5.6.3",

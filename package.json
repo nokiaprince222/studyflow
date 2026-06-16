@@ -10,7 +10,9 @@
     "dev:client": "npm run dev --workspace @studyflow/client",
     "dev:server": "npm run dev --workspace @studyflow/server",
     "build": "npm run build --workspaces",
-    "test": "npm run test --workspaces"
+    "test": "npm run test --workspaces",
+    "docker:build": "docker compose build",
+    "docker:up": "docker compose up -d --build",
+    "docker:down": "docker compose down"
   }
 }
-

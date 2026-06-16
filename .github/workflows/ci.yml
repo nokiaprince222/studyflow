@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://studyflow:studyflow@localhost:5432/studyflow?schema=public
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm run test
+
+      - name: Build workspaces
+        run: npm run build
+
+      - name: Build server image
+        run: docker build -f apps/server/Dockerfile -t studyflow-server:ci .
+
+      - name: Build client image
+        run: >
+          docker build
+          -f apps/client/Dockerfile
+          -t studyflow-client:ci
+          --build-arg VITE_API_URL=http://localhost:4000/api
+          --build-arg VITE_OIDC_AUTHORITY=
+          --build-arg VITE_OIDC_CLIENT_ID=studyflow-client
+          --build-arg VITE_OIDC_REDIRECT_URI=http://localhost:5173
+          --build-arg VITE_OIDC_POST_LOGOUT_REDIRECT_URI=http://localhost:5173
+          .

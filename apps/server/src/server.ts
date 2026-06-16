@@ -4,6 +4,7 @@ import { closeCache } from './cache.js';
 import { config } from './config.js';
 import { errorHandler } from './errors.js';
 import { metricsPlugin } from './plugins/metrics.js';
+import { closeQueue } from './queue.js';
 import { taskRoutes } from './routes/tasks.js';
 
 export async function buildServer() {
@@ -17,6 +18,7 @@ export async function buildServer() {
   app.setErrorHandler(errorHandler);
   app.addHook('onClose', async () => {
     await closeCache();
+    await closeQueue();
   });
 
   await app.register(cors, {

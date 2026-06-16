@@ -21,6 +21,10 @@ const configSchema = z.object({
     oidcAudience: z.string(),
     oidcJwksUri: z.string()
   }),
+  queue: z.object({
+    rabbitmqUrl: z.string(),
+    taskEventsQueue: z.string().min(1)
+  }),
   jobs: z.object({
     overdueScanMs: z.number().int().nonnegative()
   })
@@ -58,6 +62,10 @@ export const config = configSchema.parse({
     oidcIssuer: process.env.OIDC_ISSUER ?? fileConfig.auth.oidcIssuer,
     oidcAudience: process.env.OIDC_AUDIENCE ?? fileConfig.auth.oidcAudience,
     oidcJwksUri: process.env.OIDC_JWKS_URI ?? fileConfig.auth.oidcJwksUri
+  },
+  queue: {
+    rabbitmqUrl: process.env.RABBITMQ_URL ?? fileConfig.queue.rabbitmqUrl,
+    taskEventsQueue: process.env.TASK_EVENTS_QUEUE ?? fileConfig.queue.taskEventsQueue
   },
   jobs: {
     overdueScanMs: numberFromEnv(process.env.OVERDUE_SCAN_MS, fileConfig.jobs.overdueScanMs)

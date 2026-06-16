@@ -1,0 +1,9 @@
+.git
+.github
+node_modules
+apps/*/node_modules
+apps/*/dist
+apps/server/prisma/dev.db
+coverage
+.env
+npm-debug.log*

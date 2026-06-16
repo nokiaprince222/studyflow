@@ -17,7 +17,6 @@ ENV NODE_ENV=production
 COPY package.json package-lock.json* ./
 COPY apps/server/package.json apps/server/package.json
 COPY apps/server/prisma apps/server/prisma
-COPY apps/server/scripts apps/server/scripts
 RUN npm install --omit=dev --workspace @studyflow/server
 RUN npm run db:generate --workspace @studyflow/server
 
